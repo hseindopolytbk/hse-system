@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0d3b86" />
+  <title>HSE System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <style>
+    :root { --primary: #0d3b86; --accent: #dc2626; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #e5e7eb; -webkit-tap-highlight-color: transparent; }
+    .app-shell { max-width: 480px; margin: 0 auto; min-height: 100dvh; background: #f8fafc; position: relative; overflow-x: hidden; box-shadow: 0 0 25px rgba(0,0,0,.12); }
+    .bg-primary { background-color: var(--primary); }
+    .text-primary { color: var(--primary); }
+    .screen { display: none; animation: fadeIn .18s ease-out; }
+    .screen.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .hero-bg { background: linear-gradient(160deg, var(--primary) 0%, #1d4ed8 60%, #0f172a 100%); }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="drawer" class="fixed inset-0 z-50 hidden">
+    <div onclick="toggleDrawer(false)" class="absolute inset-0 bg-black/50"></div>
+    <div class="relative w-72 max-w-[80%] h-full bg-white p-5 flex flex-col justify-between shadow-xl">
+      <div>
+        <div class="flex items-center gap-3 pb-4 border-b">
+          <div class="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-bold">+</div>
+          <div>
+            <div class="font-bold text-slate-800" id="drawerAppName">HSE System</div>
+            <div class="text-xs text-slate-500">Menu Navigasi</div>
+          </div>
+        </div>
+        <nav class="mt-4 space-y-2 text-sm font-medium text-slate-700">
+          <button onclick="go('home');toggleDrawer(false)" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-100">🏠 Beranda</button>
+          <button onclick="go('equip');toggleDrawer(false)" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-100">📋 Inspeksi Equipment</button>
+          <button onclick="go('report');toggleDrawer(false)" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-100">📊 Laporan & Download</button>
+          <button onclick="go('update');toggleDrawer(false)" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-100">☁️ Update Database</button>
+          <button onclick="go('custom');toggleDrawer(false)" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-slate-100">⚙️ Kustomisasi App</button>
+        </nav>
+      </div>
+      <div class="text-[11px] text-slate-400">Offline-first + Cloud Sync • Gratis</div>
+    </div>
+  </div>
+
+  <section id="scr-home" class="screen active">
+    <div class="hero-bg text-white px-5 pt-5 pb-16 rounded-b-[28px] relative overflow-hidden">
+      <div class="flex justify-between items-center mb-6">
+        <button onclick="toggleDrawer(true)" class="p-2 -ml-2 rounded-lg active:bg-white/10">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <button onclick="go('report')" class="p-2 -mr-2 rounded-lg active:bg-white/10 relative">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 11-6 0"/></svg>
+          <span id="badgeWarn" class="hidden absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+        </button>
+      </div>
+      <div class="flex items-center gap-3.5">
+        <div class="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-md shrink-0">
+          <svg class="w-10 h-10" viewBox="0 0 64 64"><circle cx="32" cy="32" r="24" fill="#0d3b86"/><path d="M28 18h8v10h10v8H36v10h-8V36H18v-8h10z" fill="#ef4444"/></svg>
+        </div>
+        <div>
+          <h1 id="uiAppName" class="text-2xl font-extrabold tracking-tight">HSE System</h1>
+          <p id="uiTagline" class="text-xs text-blue-100">Safety Today, Better Tomorrow</p>
+        </div>
+      </div>
+      <div class="absolute bottom-0 right-0 w-36 h-3 bg-red-600 rounded-tl-full"></div>
+    </div>
+
+    <div class="px-4 -mt-9 relative z-10 grid grid-cols-3 gap-2.5">
+      <button onclick="go('docs')" class="bg-white p-3.5 rounded-2xl shadow-md flex flex-col items-center gap-2 active:scale-95 transition">
+        <div class="w-11 h-11 rounded-xl bg-blue-50 text-primary flex items-center justify-center text-xl">📄</div>
+        <span class="text-xs font-semibold text-slate-700">Documents</span>
+      </button>
+      <button onclick="go('equip')" class="bg-white p-3.5 rounded-2xl shadow-md flex flex-col items-center gap-2 active:scale-95 transition ring-2 ring-blue-500/20">
+        <div class="w-11 h-11 rounded-xl bg-blue-50 text-primary flex items-center justify-center text-xl">📋</div>
+        <span class="text-xs font-semibold text-slate-700">Inspection</span>
+      </button>
+      <button onclick="go('training')" class="bg-white p-3.5 rounded-2xl shadow-md flex flex-col items-center gap-2 active:scale-95 transition">
+        <div class="w-11 h-11 rounded-xl bg-blue-50 text-primary flex items-center justify-center text-xl">🎓</div>
+        <span class="text-xs font-semibold text-slate-700 text-center leading-tight">Training Modul</span>
+      </button>
+    </div>
+
+    <div class="p-4 mt-2 space-y-3">
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="font-bold text-slate-800 text-sm">Ringkasan Inspeksi</h2>
+          <button onclick="go('report')" class="text-xs font-semibold text-primary">Lihat Laporan →</button>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-slate-50 p-2.5 rounded-xl"><div id="statTotal" class="text-lg font-extrabold text-slate-800">0</div><div class="text-[11px] text-slate-500">Total</div></div>
+          <div class="bg-emerald-50 p-2.5 rounded-xl"><div id="statOk" class="text-lg font-extrabold text-emerald-600">0</div><div class="text-[11px] text-emerald-700">Sesuai</div></div>
+          <div class="bg-amber-50 p-2.5 rounded-xl"><div id="statWarn" class="text-lg font-extrabold text-amber-600">0</div><div class="text-[11px] text-amber-700">Perlu Tindak</div></div>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2.5">
+        <button onclick="go('update')" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-2.5 text-left active:scale-95 transition">
+          <span class="text-xl">☁️</span>
+          <div><div class="text-xs font-bold text-slate-800">Update Database</div><div class="text-[10px] text-slate-500">Sinkronisasi Online</div></div>
+        </button>
+        <button onclick="go('custom')" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-2.5 text-left active:scale-95 transition">
+          <span class="text-xl">⚙️</span>
+          <div><div class="text-xs font-bold text-slate-800">Kustomisasi</div><div class="text-[10px] text-slate-500">Atur Item & Server</div></div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section id="scr-equip" class="screen">
+    <header class="bg-primary text-white p-4 flex items-center gap-3 sticky top-0 z-10">
+      <button onclick="go('home')" class="p-1">◀</button><h2 class="font-bold">Pilih HSE Equipment</h2>
+    </header>
+    <div id="equipList" class="p-4 space-y-2.5"></div>
+  </section>
+
+  <section id="scr-scan" class="screen">
+    <header class="bg-primary text-white p-4 flex items-center justify-between sticky top-0 z-10">
+      <div class="flex items-center gap-3"><button onclick="stopScanner();go('equip')" class="p-1">◀</button><h2 class="font-bold">Inspection - Scan QR</h2></div>
+      <button onclick="skipQR()" class="text-xs bg-white/20 px-2.5 py-1 rounded-lg">Lewati QR →</button>
+    </header>
+    <div class="p-4 space-y-4">
+      <div class="bg-black rounded-2xl overflow-hidden relative min-h-[260px] flex items-center justify-center"><div id="qr-reader" class="w-full"></div></div>
+      <p class="text-center text-xs text-slate-500">Arahkan kamera ke QR Code pada <strong id="scanEquipLabel">Equipment</strong></p>
+      <div class="grid grid-cols-2 gap-2.5">
+        <label class="bg-white border py-2.5 rounded-xl text-center text-sm font-semibold text-slate-700 cursor-pointer shadow-sm">🖼️ Dari Galeri<input type="file" accept="image/*" class="hidden" onchange="scanFromFile(this)"></label>
+        <button onclick="toggleFlash()" class="bg-white border py-2.5 rounded-xl text-sm font-semibold text-slate-700 shadow-sm">🔦 Flash</button>
+      </div>
+      <div class="bg-white p-3 rounded-xl border flex gap-2">
+        <input id="manualQr" type="text" placeholder="Atau ketik Kode Unit (mis: APAR-01)" class="flex-1 text-sm outline-none" />
+        <button onclick="useManualQr()" class="bg-primary text-white text-xs font-bold px-3 py-2 rounded-lg">Lanjut</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="scr-form" class="screen">
+    <header class="bg-primary text-white p-4 flex items-center gap-3 sticky top-0 z-10">
+      <button onclick="go('equip')" class="p-1">◀</button><h2 class="font-bold">Inspection Checklist</h2>
+    </header>
+    <div class="p-4 space-y-4">
+      <div class="bg-white p-4 rounded-2xl shadow-sm flex items-center gap-3.5 border">
+        <div id="formIcon" class="text-3xl w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">🧯</div>
+        <div><div id="formTitle" class="font-bold text-slate-800">APAR</div><div class="text-xs text-slate-500">Kode/Lokasi: <span id="formCode" class="font-semibold text-primary">-</span></div></div>
+      </div>
+      <div id="checklistContainer" class="bg-white rounded-2xl shadow-sm divide-y border"></div>
+      <div class="bg-white p-3.5 rounded-2xl border space-y-2">
+        <label class="text-xs font-semibold text-slate-600">Nama Inspektor & Catatan (Opsional)</label>
+        <input id="inspectorName" type="text" placeholder="Nama Inspektor" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500" />
+        <textarea id="inspectNote" rows="2" placeholder="Catatan temuan..." class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500"></textarea>
+      </div>
+      <button onclick="saveInspection()" class="w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-md active:scale-95 transition">Simpan Hasil Inspeksi</button>
+    </div>
+  </section>
+
+  <section id="scr-update" class="screen">
+    <header class="bg-primary text-white p-4 flex items-center gap-3"><button onclick="go('home')" class="p-1">◀</button><h2 class="font-bold">Update Database</h2></header>
+    <div class="p-6 text-center space-y-5 mt-8">
+      <div class="w-24 h-24 mx-auto rounded-full bg-blue-100 text-primary flex items-center justify-center text-5xl">☁️</div>
+      <div><h3 class="font-bold text-slate-800 text-lg">Sinkronisasi Data Master & Laporan</h3><p class="text-xs text-slate-500 mt-1">Mengambil data terbaru HSE Equipment & mengirim data offline ke server online.</p></div>
+      <div id="syncStatusBox" class="text-xs bg-slate-100 p-3 rounded-xl text-slate-600">Status: Siap sinkronisasi</div>
+      <button onclick="syncDatabase()" class="w-full bg-red-600 text-white font-bold py-3.5 rounded-xl shadow-md active:scale-95 transition">Update Sekarang</button>
+    </div>
+  </section>
+
+  <section id="scr-docs" class="screen">
+    <header class="bg-primary text-white p-4 flex items-center gap-3"><button onclick="go('home')" class="p-1">◀</button><h2 class="font-bold">Documents</h2></header>
+    <div id="docsList" class="p-4 space-y-2.5"></div>
+  </section>
+
+  <section id="scr-training" class="screen">
+    <header class="bg-primary text-white p-4 flex items-center gap-3"><button onclick="go('home')" class="p-1">◀</button><h2 class="font-bold">Training Modul</h2></header>
+    <div class="p-4 space-y-3">
+      <div class="bg-white p-4 rounded-2xl border shadow-sm"><h3 class="font-bold text-sm text-slate-800">1. Teknik Penggunaan APAR (PASS)</h3><p class="text-xs text-slate-600 mt-1">Pull pin, Aim nozzle ke dasar api, Squeeze tuas, Sweep dari sisi ke sisi.</p></div>
+      <div class="bg-white p-4 rounded-2xl border shadow-sm"><h3 class="font-bold text-sm text-slate-800">2. Inspeksi Hydrant & Jalur Evakuasi</h3><p class="text-xs text-slate-600 mt-1">Pastikan akses pintu darurat tidak terhalang dan lampu emergency menyala saat tes.</p></div>
+    </div>
+  </section>
+
+  <section id="scr-report" class="screen">
+    <header class="bg-primary text-white p-4 flex items-center gap-3 sticky top-0 z-10"><button onclick="go('home')" class="p-1">◀</button><h2 class="font-bold">Laporan Hasil Inspeksi</h2></header>
+    <div class="p-4 space-y-4">
+      <div class="bg-white p-4 rounded-2xl border shadow-sm space-y-3">
+        <label class="text-xs font-semibold text-slate-600">Filter Rentang Waktu</label>
+        <select id="reportRange" onchange="renderReports()" class="w-full border rounded-xl p-2.5 text-sm bg-slate-50"><option value="30">1 Bulan Terakhir</option><option value="7">7 Hari Terakhir</option><option value="all">Semua Data</option></select>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="downloadPDF()" class="bg-primary text-white text-xs font-bold py-3 rounded-xl">⬇️ Download PDF</button>
+          <button onclick="downloadCSV()" class="bg-emerald-600 text-white text-xs font-bold py-3 rounded-xl">📊 Export Excel/CSV</button>
+        </div>
+      </div>
+      <div class="bg-white p-4 rounded-2xl border shadow-sm"><div class="text-xs font-bold text-slate-700 mb-2">Grafik Kondisi Equipment</div><div id="miniChart" class="flex items-end gap-2 h-24 pt-2 border-b"></div></div>
+      <div id="reportList" class="space-y-2.5"></div>
+    </div>
+  </section>
+
+  <section id="scr-custom" class="screen">
+    <header class="bg-primary text-white p-4 flex items-center gap-3 sticky top-0 z-10"><button onclick="go('home')" class="p-1">◀</button><h2 class="font-bold">Kustomisasi Aplikasi</h2></header>
+    <div class="p-4 space-y-4">
+      <div class="bg-white p-4 rounded-2xl border space-y-3">
+        <h3 class="font-bold text-sm text-slate-800">Tampilan & Database Online</h3>
+        <input id="cfgName" type="text" placeholder="Nama Aplikasi" class="w-full border rounded-lg px-3 py-2 text-sm" />
+        <input id="cfgTag" type="text" placeholder="Tagline" class="w-full border rounded-lg px-3 py-2 text-sm" />
+        <div class="flex items-center justify-between text-sm"><span>Warna Tema Utama</span><input id="cfgColor" type="color" class="h-8 w-16 rounded cursor-pointer" /></div>
+        <input id="cfgApi" type="url" placeholder="URL Google Apps Script (Storage Online)" class="w-full border rounded-lg px-3 py-2 text-xs" />
+        <button onclick="saveConfig()" class="w-full bg-primary text-white font-bold py-2.5 rounded-xl text-sm">Simpan Pengaturan</button>
+      </div>
+      <div class="bg-white p-4 rounded-2xl border space-y-3">
+        <h3 class="font-bold text-sm text-slate-800">Tambah Equipment & Checklist Baru</h3>
+        <input id="newEqName" type="text" placeholder="Nama Equipment (mis: Detektor Gas)" class="w-full border rounded-lg px-3 py-2 text-sm" />
+        <input id="newEqIcon" type="text" placeholder="Emoji Ikon (mis: 🚨)" class="w-full border rounded-lg px-3 py-2 text-sm" />
+        <textarea id="newEqChecks" rows="3" placeholder="Daftar checklist pisahkan dengan koma" class="w-full border rounded-lg px-3 py-2 text-sm"></textarea>
+        <button onclick="addEquipment()" class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl text-sm">+ Tambah Equipment</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="modalOverlay" class="fixed inset-0 z-50 bg-black/50 hidden items-center justify-center p-5">
+    <div id="modalBox" class="bg-white w-full max-w-xs rounded-2xl p-6 text-center space-y-4 shadow-2xl"></div>
+  </div>
+</div>
+
+<script>
+const DEFAULT_DATA = {
+  config: { appName: "HSE System", tagline: "Safety Today, Better Tomorrow", color: "#0d3b86", apiUrl: "" },
+  equipments: [
+    { id: "apar", name: "APAR (Alat Pemadam Api Ringan)", icon: "🧯", checks: ["Kondisi fisik baik", "Segel utuh", "Tekanan normal", "Terdapat penanda lokasi", "Bersih dari debu"] },
+    { id: "hydrant", name: "Hydrant", icon: "🚒", checks: ["Selang tidak bocor", "Nozzle lengkap", "Valve mudah diputar", "Box bersih & tidak terhalang"] },
+    { id: "p3k", name: "Kotak P3K", icon: "🩹", checks: ["Isi lengkap sesuai standar", "Obat tidak kedaluwarsa", "Kotak bersih & mudah diakses"] },
+    { id: "tandu", name: "Tandu Darurat", icon: "🛏️", checks: ["Rangka kokoh", "Sabuk pengaman utuh", "Bersih dan siap pakai"] },
+    { id: "pintu", name: "Pintu Darurat", icon: "🚪", checks: ["Tidak terkunci/terhalang", "Push bar berfungsi", "Signage EXIT menyala"] },
+    { id: "lampu", name: "Lampu Emergency", icon: "🚨", checks: ["Menyala saat tes", "Baterai normal", "Kondisi fisik baik"] }
+  ],
+  docs: [
+    { title: "Panduan Inspeksi APAR", desc: "PDF • Standar K3", url: "https://www.google.com/search?q=panduan+inspeksi+apar+pdf" },
+    { title: "Standar K3 Perusahaan", desc: "Intranet / Dokumen Resmi", url: "https://intranet.company.id" }
+  ],
+  records: []
+};
+let DB = JSON.parse(localStorage.getItem("HSE_DB") || "null") || structuredClone(DEFAULT_DATA);
+let state = { eq: null, qrCode: "", scanner: null, flash: false };
+function persist() { localStorage.setItem("HSE_DB", JSON.stringify(DB)); applyTheme(); updateStats(); }
+function applyTheme() {
+  document.documentElement.style.setProperty("--primary", DB.config.color);
+  document.getElementById("uiAppName").textContent = DB.config.appName;
+  document.getElementById("drawerAppName").textContent = DB.config.appName;
+  document.getElementById("uiTagline").textContent = DB.config.tagline;
+}
+function go(scr) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("scr-" + scr).classList.add("active");
+  window.scrollTo(0, 0);
+  if (scr === "equip") renderEquipList();
+  if (scr === "docs") renderDocs();
+  if (scr === "report") renderReports();
+  if (scr === "custom") loadConfigForm();
+}
+function toggleDrawer(show) { document.getElementById("drawer").classList.toggle("hidden", !show); }
+function updateStats() {
+  const total = DB.records.length, ok = DB.records.filter(r => r.status === "Sesuai").length, warn = total - ok;
+  document.getElementById("statTotal").textContent = total;
+  document.getElementById("statOk").textContent = ok;
+  document.getElementById("statWarn").textContent = warn;
+  document.getElementById("badgeWarn").classList.toggle("hidden", warn === 0);
+}
+function renderEquipList() {
+  document.getElementById("equipList").innerHTML = DB.equipments.map(eq => `
+    <button onclick="selectEquip('${eq.id}')" class="w-full bg-white p-3.5 rounded-2xl border shadow-sm flex items-center justify-between active:scale-95 transition">
+      <div class="flex items-center gap-3"><span class="text-2xl w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center">${eq.icon}</span><span class="font-semibold text-sm text-slate-800 text-left">${eq.name}</span></div><span class="text-slate-400">›</span>
+    </button>`).join("");
+}
+function selectEquip(id) {
+  state.eq = DB.equipments.find(e => e.id === id);
+  document.getElementById("scanEquipLabel").textContent = state.eq.name;
+  go("scan"); startScanner();
+}
+function startScanner() {
+  stopScanner();
+  try {
+    state.scanner = new Html5Qrcode("qr-reader");
+    state.scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (txt) => { stopScanner(); openForm(txt); }, () => {}).catch(() => {});
+  } catch (e) {}
+}
+function stopScanner() { if (state.scanner) { try { state.scanner.stop().catch(()=>{}); } catch(e){} state.scanner = null; } }
+function scanFromFile(inp) {
+  if (!inp.files[0]) return;
+  new Html5Qrcode("qr-reader").scanFile(inp.files[0], true).then(txt => { stopScanner(); openForm(txt); }).catch(() => alert("QR Code tidak terbaca pada gambar."));
+}
+function toggleFlash() {
+  if (!state.scanner) return;
+  state.flash = !state.flash;
+  try { state.scanner.applyVideoConstraints({ advanced: [{ torch: state.flash }] }); } catch(e) { alert("Flash tidak didukung browser ini."); }
+}
+function useManualQr() { const val = document.getElementById("manualQr").value.trim(); stopScanner(); openForm(val || "UNIT-MANUAL"); }
+function skipQR() { stopScanner(); openForm("TANPA-QR-" + Date.now().toString().slice(-4)); }
+function openForm(code) {
+  state.qrCode = code;
+  document.getElementById("formIcon").textContent = state.eq.icon;
+  document.getElementById("formTitle").textContent = state.eq.name;
+  document.getElementById("formCode").textContent = code;
+  document.getElementById("checklistContainer").innerHTML = state.eq.checks.map(c => `
+    <label class="flex items-center gap-3 p-3.5 cursor-pointer active:bg-slate-50">
+      <input type="checkbox" class="chk-item w-5 h-5 accent-blue-600 rounded" data-label="${c}" checked /><span class="text-sm text-slate-700">${c}</span>
+    </label>`).join("");
+  go("form");
+}
+async function saveInspection() {
+  const chks = [...document.querySelectorAll(".chk-item")], passed = chks.filter(c => c.checked).length;
+  const rec = {
+    id: "REC-" + Date.now(), date: new Date().toISOString(), eqName: state.eq.name, code: state.qrCode,
+    passed: `${passed}/${chks.length}`, status: passed === chks.length ? "Sesuai" : "Perlu Tindak",
+    inspector: document.getElementById("inspectorName").value || "Petugas K3",
+    note: document.getElementById("inspectNote").value || "-", synced: false
+  };
+  showModal(`<div class="w-12 h-12 mx-auto border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div><div class="font-bold">Memproses...</div><div class="text-xs text-slate-500">Menyimpan data inspeksi</div>`);
+  DB.records.unshift(rec);
+  if (DB.config.apiUrl) {
+    try { await fetch(DB.config.apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "saveRecord", data: rec }) }); rec.synced = true; } catch (e) {}
+  }
+  persist();
+  setTimeout(() => {
+    showModal(`<div class="w-14 h-14 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl">✓</div><div class="font-bold text-slate-800">Data Berhasil Disimpan!</div><div class="text-xs text-slate-500">${rec.eqName} (${rec.code}) telah tersimpan.</div><button onclick="closeModal();go('home')" class="w-full bg-primary text-white font-bold py-2.5 rounded-xl">OK</button>`);
+  }, 450);
+}
+async function syncDatabase() {
+  const box = document.getElementById("syncStatusBox");
+  if (!DB.config.apiUrl) { box.textContent = "Isi URL Google Apps Script di Menu Kustomisasi terlebih dahulu."; return; }
+  box.textContent = "Menghubungkan ke server...";
+  try {
+    const unsynced = DB.records.filter(r => !r.synced);
+    for (const r of unsynced) {
+      await fetch(DB.config.apiUrl, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "saveRecord", data: r }) });
+      r.synced = true;
+    }
+    const res = await fetch(DB.config.apiUrl + "?action=getMaster");
+    const json = await res.json();
+    if (json.equipments?.length) DB.equipments = json.equipments;
+    persist();
+    box.textContent = `Berhasil! ${unsynced.length} data terkirim & master terbaru dimuat.`;
+  } catch (e) { box.textContent = "Data lokal aman. Server cloud tidak merespons (cek URL / koneksi)."; }
+}
+function renderDocs() {
+  document.getElementById("docsList").innerHTML = DB.docs.map(d => `
+    <a href="${d.url}" target="_blank" class="bg-white p-4 rounded-2xl border shadow-sm flex items-center justify-between">
+      <div class="flex items-center gap-3"><span class="text-2xl">📑</span><div><div class="font-bold text-sm text-slate-800">${d.title}</div><div class="text-xs text-slate-500">${d.desc}</div></div></div><span class="text-slate-400">›</span>
+    </a>`).join("");
+}
+function renderReports() {
+  const days = document.getElementById("reportRange").value, now = Date.now();
+  const filtered = DB.records.filter(r => days === "all" || (now - new Date(r.date).getTime()) <= days * 86400000);
+  const ok = filtered.filter(r => r.status === "Sesuai").length, warn = filtered.length - ok, max = Math.max(ok, warn, 1);
+  document.getElementById("miniChart").innerHTML = `
+    <div class="flex-1 flex flex-col items-center justify-end h-full"><div class="w-12 bg-emerald-500 rounded-t-lg" style="height:${(ok/max)*80}%"></div><span class="text-[10px] mt-1">Sesuai (${ok})</span></div>
+    <div class="flex-1 flex flex-col items-center justify-end h-full"><div class="w-12 bg-amber-500 rounded-t-lg" style="height:${(warn/max)*80}%"></div><span class="text-[10px] mt-1">Temuan (${warn})</span></div>`;
+  document.getElementById("reportList").innerHTML = filtered.length ? filtered.map(r => `
+    <div class="bg-white p-3.5 rounded-2xl border shadow-sm flex justify-between items-center">
+      <div><div class="font-bold text-sm text-slate-800">${r.eqName} <span class="text-xs font-normal text-slate-500">(${r.code})</span></div><div class="text-[11px] text-slate-500">${new Date(r.date).toLocaleDateString("id-ID")} • ${r.inspector} • ${r.passed}</div></div>
+      <div class="flex items-center gap-2"><span class="text-[10px] px-2 py-1 rounded-full font-bold ${r.status==='Sesuai'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700'}">${r.status}</span><button onclick="askDelete('${r.id}')" class="text-red-500 text-sm p-1">🗑️</button></div>
+    </div>`).join("") : `<div class="text-center text-xs text-slate-400 py-8">Belum ada data inspeksi.</div>`;
+}
+function askDelete(id) {
+  showModal(`<div class="w-12 h-12 mx-auto rounded-full bg-red-100 text-red-600 flex items-center justify-center text-2xl">🗑️</div><div class="font-bold text-slate-800">Hapus Data Ini?</div><div class="text-xs text-slate-500">Data inspeksi akan dihapus secara permanen dari perangkat.</div><div class="grid grid-cols-2 gap-2"><button onclick="closeModal()" class="border py-2.5 rounded-xl text-sm font-semibold">Batal</button><button onclick="confirmDelete('${id}')" class="bg-red-600 text-white py-2.5 rounded-xl text-sm font-semibold">Hapus</button></div>`);
+}
+function confirmDelete(id) { DB.records = DB.records.filter(r => r.id !== id); persist(); closeModal(); renderReports(); }
+function downloadPDF() {
+  if (!window.jspdf) return alert("Library PDF masih dimuat, coba lagi.");
+  const { jsPDF } = window.jspdf, doc = new jsPDF();
+  doc.setFontSize(16); doc.text(DB.config.appName + " - Laporan Hasil Inspeksi", 14, 18);
+  doc.setFontSize(10); doc.text("Tanggal Cetak: " + new Date().toLocaleString("id-ID"), 14, 25);
+  let y = 35;
+  DB.records.slice(0, 25).forEach((r, i) => { doc.text(`${i+1}. ${new Date(r.date).toLocaleDateString("id-ID")} | ${r.eqName} (${r.code}) | ${r.status} [${r.passed}]`, 14, y); y += 7; if (y > 280) { doc.addPage(); y = 20; } });
+  doc.save("Inspection_Report.pdf");
+}
+function downloadCSV() {
+  const rows = [["Tanggal", "Equipment", "Kode", "Hasil", "Status", "Inspektor", "Catatan"], ...DB.records.map(r => [r.date, r.eqName, r.code, r.passed, r.status, r.inspector, r.note])];
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "Inspection_Report.csv"; a.click();
+}
+function loadConfigForm() {
+  document.getElementById("cfgName").value = DB.config.appName; document.getElementById("cfgTag").value = DB.config.tagline;
+  document.getElementById("cfgColor").value = DB.config.color; document.getElementById("cfgApi").value = DB.config.apiUrl;
+}
+function saveConfig() {
+  DB.config.appName = document.getElementById("cfgName").value || "HSE System"; DB.config.tagline = document.getElementById("cfgTag").value || "Safety Today, Better Tomorrow";
+  DB.config.color = document.getElementById("cfgColor").value; DB.config.apiUrl = document.getElementById("cfgApi").value.trim();
+  persist(); alert("Kustomisasi tersimpan!"); go("home");
+}
+function addEquipment() {
+  const name = document.getElementById("newEqName").value.trim(), icon = document.getElementById("newEqIcon").value.trim() || "🛡️";
+  const checks = document.getElementById("newEqChecks").value.split(",").map(s => s.trim()).filter(Boolean);
+  if (!name || !checks.length) return alert("Isi nama equipment dan checklist!");
+  DB.equipments.push({ id: "eq-" + Date.now(), name, icon, checks }); persist();
+  document.getElementById("newEqName").value = ""; document.getElementById("newEqChecks").value = ""; alert("Equipment baru ditambahkan!");
+}
+function showModal(html) { document.getElementById("modalBox").innerHTML = html; const m = document.getElementById("modalOverlay"); m.classList.remove("hidden"); m.classList.add("flex"); }
+function closeModal() { const m = document.getElementById("modalOverlay"); m.classList.add("hidden"); m.classList.remove("flex"); }
+applyTheme(); updateStats();
+</script>
+</body>
+</html>
